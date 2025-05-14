@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import PersonnelDashboard from './pages/personnel/PersonnelDashboard';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
@@ -29,7 +30,9 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <Routes>
               {/* Public Routes */}
+              <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
+              
               
               {/* Personnel Routes */}
               <Route 
@@ -150,7 +153,7 @@ function App() {
               />
               
               {/* Default Routes */}
-              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/" element={<Navigate to="/register" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

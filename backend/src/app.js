@@ -1,0 +1,32 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+const connectDB = require('./utils/db');
+const authRoutes = require('./routes/authRoutes');
+
+dotenv.config();
+connectDB();
+
+const app = express();
+
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true
+}));
+app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || '',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+
+module.exports = app;
