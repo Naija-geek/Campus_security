@@ -66,16 +66,19 @@ const ViewPersonnel: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Joined
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created At
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-gray-400">Loading...</td>
+                    <td colSpan={7} className="text-center py-8 text-gray-400">Loading...</td>
                   </tr>
                 ) : filteredPersonnel.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8">
+                    <td colSpan={7} className="text-center py-8">
                       <User size={48} className="mx-auto text-gray-400 mb-3" />
                       <p className="text-gray-500">No personnel found</p>
                     </td>
@@ -132,6 +135,12 @@ const ViewPersonnel: React.FC = () => {
                           <div className="flex items-center text-sm text-gray-500">
                             <Calendar size={16} className="mr-1" />
                             {person.joiningDate ? new Date(person.joiningDate).toLocaleDateString() : ''}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Calendar size={16} className="mr-1" />
+                            {person.createdAt ? new Date(person.createdAt).toLocaleDateString() : ''}
                           </div>
                         </td>
                       </tr>

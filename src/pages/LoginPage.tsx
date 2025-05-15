@@ -33,17 +33,17 @@ const LoginPage: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 to-green-800 p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden transform transition-all hover:shadow-2xl">
           <div className="p-6 sm:p-8">
             <div className="flex justify-center mb-8">
-              <div className="bg-blue-900 rounded-full p-3">
+              <div className="bg-green-900 rounded-full p-3">
                 <Shield size={28} className="text-white" />
               </div>
             </div>
             
-            <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Campus Security</h2>
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">FUOYE Campus Security</h2>
             <p className="text-center text-gray-600 mb-8">Sign in to your account</p>
             
             <form onSubmit={handleSubmit}>
@@ -66,7 +66,7 @@ const LoginPage: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="you@example.com"
                     required
                   />
@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="••••••••"
                     required
                   />
@@ -98,14 +98,14 @@ const LoginPage: React.FC = () => {
                   <input
                     id="remember"
                     type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                     Remember me
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                  <a href="#" className="font-medium text-green-600 hover:text-green-500">
                     Forgot password?
                   </a>
                 </div>
@@ -113,7 +113,7 @@ const LoginPage: React.FC = () => {
               
               <button
                 type="submit"
-                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-[1.02]"
+                className="w-full bg-green-900 hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-[1.02]"
               >
                 Sign in
               </button>
@@ -140,7 +140,7 @@ const LoginPage: React.FC = () => {
                 Don't have an account?{' '}
                 <a
                   href="/register"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                  className="text-green-600 hover:text-green-500 font-medium"
                 >
                   Sign up
                 </a>
@@ -150,7 +150,7 @@ const LoginPage: React.FC = () => {
           
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-600">
-              © 2025 Campus Security Management. All rights reserved.
+              © 2025 FUOYE Campus Security Management. All rights reserved.
             </p>
           </div>
         </div>

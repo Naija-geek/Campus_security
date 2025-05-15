@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['personnel', 'manager', 'admin'], default: 'personnel' },
-});
+}, { timestamps: true }); // <-- This adds createdAt and updatedAt
 
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

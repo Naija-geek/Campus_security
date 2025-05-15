@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
-import { useAppContext } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import RequestForm from '../../components/RequestForm';
 import StatusBadge from '../../components/StatusBadge';
@@ -8,19 +7,34 @@ import { Calendar, Clock } from 'lucide-react';
 
 const LeaveRequests: React.FC = () => {
   const { user } = useAuth();
-  const { leaveRequests, submitLeaveRequest } = useAppContext();
-  
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.leaveRequests || []));
+  }, []);
+
   const myRequests = leaveRequests.filter(request => request.personnelId === user?.id);
-  
-  const handleSubmit = (data: any) => {
-    submitLeaveRequest({
-      personnelId: user?.id || '',
-      startDate: data.startDate,
-      endDate: data.endDate,
-      reason: data.reason
+
+  const handleSubmit = async (data: any) => {
+    await fetch('http://localhost:5000/api/leave-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        personnelId: user?.id || '',
+        startDate: data.startDate,
+        endDate: data.endDate,
+        reason: data.reason
+      }),
     });
+    // Optionally, refetch leave requests after submitting
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.leaveRequests || []));
   };
-  
+
   return (
     <Layout>
       <div className="p-6">

@@ -6,6 +6,8 @@ const MongoStore = require('connect-mongo');
 const connectDB = require('./utils/db');
 const authRoutes = require('./routes/authRoutes');
 const personnelRoutes = require('./routes/personnelRoutes');
+const dutyAssignmentRoutes = require('./routes/dutyAssignmentRoutes');
+const leaveRequestRoutes = require('./routes/leaveRequestRoutes');
 
 dotenv.config();
 connectDB();
@@ -30,5 +32,7 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/personnel', personnelRoutes);
+app.use('/api/duty-assignments', dutyAssignmentRoutes);
+app.use('/api/leave-requests', leaveRequestRoutes);
 
 module.exports = app;
