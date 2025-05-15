@@ -10,7 +10,7 @@ interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (email: string, password: string, role: string) => Promise<void>;
+  register: (email: string, password: string, role: string, name: string, contact: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -64,13 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('securityAppUser');
   };
 
-  const register = async (email: string, password: string, role: string) => {
+  const register = async (email: string, password: string, role: string, name: string, contact: string) => {
     setError(null);
     const response = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for session cookies
-      body: JSON.stringify({ email, password, role }),
+      body: JSON.stringify({ email, password, role, name, contact }),
     });
     const data = await response.json();
     if (!response.ok) {

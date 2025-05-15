@@ -134,6 +134,18 @@ const LoginPage: React.FC = () => {
               </div>
               <p className="mt-3 text-xs text-gray-500">(All use password: "password")</p>
             </div>
+
+            <div className="mt-8 text-sm text-center text-gray-600">
+              <p>
+                Don't have an account?{' '}
+                <a
+                  href="/register"
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  Sign up
+                </a>
+              </p>
+            </div>
           </div>
           
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">

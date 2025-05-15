@@ -5,6 +5,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const connectDB = require('./utils/db');
 const authRoutes = require('./routes/authRoutes');
+const personnelRoutes = require('./routes/personnelRoutes');
 
 dotenv.config();
 connectDB();
@@ -28,5 +29,6 @@ app.use(
 );
 
 app.use('/api/auth', authRoutes);
+app.use('/api/personnel', personnelRoutes);
 
 module.exports = app;
