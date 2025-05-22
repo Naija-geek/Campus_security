@@ -14,20 +14,19 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+  const user = await User.findOne({ email });
+  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+  // Replace this with your password check logic
+  const isMatch = await user.comparePassword(password); // or bcrypt.compare
+  if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    req.session.user = { id: String(user._id), email: user.email, role: user.role };
-    res.json({ message: 'Login successful', user: { email: user.email, role: user.role } });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
+  // Set session userId
+  req.session.userId = user._id;
+
+  res.json({ user });
 };
 
 const logout = (req, res) => {

@@ -1,34 +1,41 @@
-import React from 'react';
-import { 
-  Users, 
-  Shield, 
-  Key, 
-  UserPlus 
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Shield, Key, UserPlus } from 'lucide-react';
 import Layout from '../../components/Layout';
 import DashboardCard from '../../components/DashboardCard';
-import { useAppContext } from '../../context/AppContext';
 import { Personnel } from '../../types';
 
 const AdminDashboard: React.FC = () => {
-  const { 
-    personnel, 
-    managers, 
-    admins 
-  } = useAppContext();
-  
+  const [personnel, setPersonnel] = useState<any[]>([]);
+  const [managers, setManagers] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch personnel
+    fetch('http://localhost:5000/api/users?role=personnel', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setPersonnel(data.users || []));
+    // Fetch managers
+    fetch('http://localhost:5000/api/users?role=manager', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setManagers(data.users || []));
+    // Fetch admins
+    fetch('http://localhost:5000/api/users?role=admin', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setAdmins(data.users || []));
+  }, []);
+
   // Calculate stats
   const totalUsers = personnel.length + managers.length + admins.length;
-  
+
   // Find newest personnel
   const getNewestPersonnel = () => {
-    return [...personnel].sort((a, b) => 
-      new Date(b.joiningDate).getTime() - new Date(a.joiningDate).getTime()
-    ).slice(0, 3);
+    return [...personnel]
+      .sort((a, b) => new Date(b.joiningDate).getTime() - new Date(a.joiningDate).getTime())
+      .slice(0, 3);
   };
-  
+
   const newestPersonnel = getNewestPersonnel();
-  
+
   return (
     <Layout>
       <div className="mb-6">
@@ -44,7 +51,6 @@ const AdminDashboard: React.FC = () => {
           to="/admin/users"
           color="blue"
         />
-        
         <DashboardCard
           title="Personnel"
           count={personnel.length.toString()}
@@ -52,7 +58,6 @@ const AdminDashboard: React.FC = () => {
           to="/admin/users"
           color="green"
         />
-        
         <DashboardCard
           title="Managers"
           count={managers.length.toString()}
@@ -60,7 +65,6 @@ const AdminDashboard: React.FC = () => {
           to="/admin/users"
           color="purple"
         />
-        
         <DashboardCard
           title="Admins"
           count={admins.length.toString()}
@@ -87,17 +91,27 @@ const AdminDashboard: React.FC = () => {
           <div className="divide-y divide-gray-200">
             {newestPersonnel.map((person: Personnel) => (
               <div key={person.id} className="px-6 py-4 flex items-center">
-                <div className="h-10 w-10 rounded-full overflow-hidden">
-                  <img src={person.profileImage} alt={person.name} className="h-full w-full object-cover" />
+                <div className="h-10 w-10 rounded-full overflow-hidden bg-green-700 flex items-center justify-center text-white font-bold text-lg">
+                  {person.profileImage ? (
+                    <img src={person.profileImage} alt={person.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span>
+                      {person.name
+                        ? person.name
+                            .split(' ')
+                            .map((n: string) => n[0])
+                            .join('')
+                            .toUpperCase()
+                        : ''}
+                    </span>
+                  )}
                 </div>
-                
                 <div className="ml-4 flex-1">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-medium text-gray-900">{person.name}</h4>
                       <p className="text-sm text-gray-500">{person.email}</p>
                     </div>
-                    
                     <div className="flex items-center text-sm text-gray-500">
                       <p>{new Date(person.joiningDate).toLocaleDateString()}</p>
                     </div>
@@ -105,7 +119,6 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
             ))}
-            
             {newestPersonnel.length === 0 && (
               <div className="px-6 py-4 text-center text-gray-500">
                 No personnel found.
@@ -118,7 +131,6 @@ const AdminDashboard: React.FC = () => {
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-800">Quick Actions</h3>
           </div>
-          
           <div className="p-6 space-y-4">
             <a 
               href="/admin/users"
@@ -134,7 +146,6 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
             </a>
-            
             <a 
               href="/admin/password-management"
               className="group block p-4 rounded-lg border border-gray-200 hover:border-purple-200 hover:bg-purple-50 transition-all duration-200"

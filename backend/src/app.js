@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const personnelRoutes = require('./routes/personnelRoutes');
 const dutyAssignmentRoutes = require('./routes/dutyAssignmentRoutes');
 const leaveRequestRoutes = require('./routes/leaveRequestRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 connectDB();
@@ -34,5 +35,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/personnel', personnelRoutes);
 app.use('/api/duty-assignments', dutyAssignmentRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
+app.use('/api/users', userRoutes);
 
 module.exports = app;

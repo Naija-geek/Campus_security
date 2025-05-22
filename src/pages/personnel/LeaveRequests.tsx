@@ -23,7 +23,7 @@ const LeaveRequests: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        personnelId: user?.id || '',
+        personnelId: user?.id || '', // <-- use _id instead of id
         startDate: data.startDate,
         endDate: data.endDate,
         reason: data.reason

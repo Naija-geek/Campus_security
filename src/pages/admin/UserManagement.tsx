@@ -1,25 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { useAppContext } from '../../context/AppContext';
-import { User, Shield, UserPlus, UserX, Search } from 'lucide-react';
+import { User, Shield, UserPlus, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const UserManagement: React.FC = () => {
-  const { personnel, managers, admins, addPersonnel, updatePersonnel, deletePersonnel } = useAppContext();
+  const [users, setUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  
-  const allUsers = [...personnel, ...managers, ...admins];
-  const filteredUsers = allUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', contact: '', email: '' });
+  const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/users', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setUsers(data.users || []));
+  }, []);
+
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deletePersonnel(id);
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+    await fetch(`http://localhost:5000/api/users/${userToDelete._id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    setUsers(users.filter(user => user._id !== userToDelete._id));
+    setShowDeleteModal(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteClick = (user: any) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const handleEditClick = (user: any) => {
+    setEditingUser(user);
+    setEditForm({ name: user.name, contact: user.contact, email: user.email });
+    setShowModal(true);
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingUser) return;
+    const res = await fetch(`http://localhost:5000/api/users/${editingUser._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(editForm),
+    });
+    if (res.ok) {
+      const updatedUser = await res.json();
+      setUsers(users.map(u => (u._id === editingUser._id ? updatedUser.user : u)));
+      setEditingUser(null);
+      setShowModal(false);
     }
   };
-  
+
+  const handleEditCancel = () => {
+    setEditingUser(null);
+    setShowModal(false);
+  };
+
   return (
     <Layout>
       <div className="p-6">
@@ -41,7 +92,7 @@ const UserManagement: React.FC = () => {
           </div>
           
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => navigate('/register')}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <UserPlus size={20} className="mr-2" />
@@ -70,7 +121,7 @@ const UserManagement: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full overflow-hidden">
@@ -83,6 +134,7 @@ const UserManagement: React.FC = () => {
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{user.name}</div>
                           <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-xs text-gray-400">{user.contact}</div>
                         </div>
                       </div>
                     </td>
@@ -100,13 +152,13 @@ const UserManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => {/* Handle edit */}}
+                          onClick={() => handleEditClick(user)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDeleteClick(user)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Delete
@@ -126,6 +178,89 @@ const UserManagement: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Edit Modal */}
+        {showModal && editingUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Edit User</h2>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editForm.name}
+                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-1">Contact</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={editForm.contact}
+                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editForm.email}
+                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleEditCancel}
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditSave}
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && userToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm">
+              <h2 className="text-lg font-bold mb-4 text-red-700">Delete User</h2>
+              <p className="mb-6 text-gray-700">
+                Are you sure you want to delete <span className="font-semibold">{userToDelete.name}</span>?
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setUserToDelete(null);
+                  }}
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
