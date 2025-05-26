@@ -9,6 +9,8 @@ const personnelRoutes = require('./routes/personnelRoutes');
 const dutyAssignmentRoutes = require('./routes/dutyAssignmentRoutes');
 const leaveRequestRoutes = require('./routes/leaveRequestRoutes');
 const userRoutes = require('./routes/userRoutes');
+const loanRequestRoutes = require('./routes/loanRequestRoutes');
+const overtimeRequestRoutes = require('./routes/overtimeRequestRoutes');
 
 dotenv.config();
 connectDB();
@@ -36,5 +38,7 @@ app.use('/api/personnel', personnelRoutes);
 app.use('/api/duty-assignments', dutyAssignmentRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/loan-requests', loanRequestRoutes);
+app.use('/api/overtime-requests', overtimeRequestRoutes);
 
 module.exports = app;

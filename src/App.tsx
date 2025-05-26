@@ -16,6 +16,7 @@ import ManageLeaveRequests from './pages/manager/ManageLeaveRequests';
 import AssignDuty from './pages/manager/AssignDuty';
 import ViewPersonnel from './pages/manager/ViewPersonnel';
 import ManageLoanRequests from './pages/manager/ManageLoanRequests';
+import ManageOvertimeRequests from './pages/manager/ManageOvertimeRequests';
 import UserManagement from './pages/admin/UserManagement';
 import PasswordManagement from './pages/admin/PasswordManagement';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -122,6 +123,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['manager']}>
                     <ManageLoanRequests />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/manager/overtime-requests" 
+                element={
+                  <ProtectedRoute allowedRoles={['manager']}>
+                    <ManageOvertimeRequests />
                   </ProtectedRoute>
                 } 
               />

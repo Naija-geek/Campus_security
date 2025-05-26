@@ -1,27 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { useAppContext } from '../../context/AppContext';
 import StatusBadge from '../../components/StatusBadge';
 import { Calendar, Clock, User, CheckCircle, XCircle } from 'lucide-react';
 
 const ManageLeaveRequests: React.FC = () => {
-  const { leaveRequests, personnel, updateLeaveRequestStatus } = useAppContext();
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [personnel, setPersonnel] = useState<any[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [comments, setComments] = useState('');
-  
+
+  // Fetch leave requests and personnel from backend
+  useEffect(() => {
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.requests || []));
+    fetch('http://localhost:5000/api/users?role=personnel', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setPersonnel(data.users || []));
+  }, []);
+
   const pendingRequests = leaveRequests.filter(request => request.status === 'pending');
   const otherRequests = leaveRequests.filter(request => request.status !== 'pending');
   
-  const handleApprove = (id: string) => {
-    updateLeaveRequestStatus(id, 'approved', comments);
+  const handleApprove = async (id: string) => {
+    await fetch(`http://localhost:5000/api/leave-requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'approved', comments }),
+    });
     setSelectedRequest(null);
     setComments('');
+    // Refresh leave requests
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.requests || []));
   };
   
-  const handleReject = (id: string) => {
-    updateLeaveRequestStatus(id, 'rejected', comments);
+  const handleReject = async (id: string) => {
+    await fetch(`http://localhost:5000/api/leave-requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'rejected', comments }),
+    });
     setSelectedRequest(null);
     setComments('');
+    // Refresh leave requests
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.requests || []));
   };
   
   return (
@@ -41,39 +69,32 @@ const ManageLeaveRequests: React.FC = () => {
               
               <div className="divide-y divide-gray-200">
                 {pendingRequests.map((request) => {
-                  const person = personnel.find(p => p.id === request.personnelId);
-                  
+                  const person = request.personnelId;
+
                   return (
-                    <div 
-                      key={request.id} 
-                      className={`p-4 cursor-pointer transition-colors duration-200 ${
-                        selectedRequest === request.id ? 'bg-blue-50' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => setSelectedRequest(request.id)}
-                    >
+                    <div key={request._id} className="p-4">
                       <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <img 
-                            src={person?.profileImage} 
-                            alt={person?.name} 
-                            className="h-10 w-10 rounded-full"
-                          />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {person?.name}
-                          </p>
+                        <img src={person?.profileImage} alt={person?.name} className="h-10 w-10 rounded-full" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{person?.name}</p>
                           <div className="flex items-center text-sm text-gray-500">
                             <Calendar size={16} className="mr-1" />
-                            <span>{request.startDate} - {request.endDate}</span>
+                            <span>
+                              {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
-                        
                         <StatusBadge status={request.status} />
+                        {/* Add this button to open the approval form */}
+                        <button
+                          className="ml-auto px-3 py-1 bg-blue-100 text-blue-700 rounded"
+                          onClick={() => setSelectedRequest(request._id)}
+                        >
+                          Review
+                        </button>
                       </div>
-                      
-                      {selectedRequest === request.id && (
+
+                      {selectedRequest === request._id && (
                         <div className="mt-4 space-y-4">
                           <p className="text-gray-700">{request.reason}</p>
                           
@@ -92,15 +113,15 @@ const ManageLeaveRequests: React.FC = () => {
                           
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => handleApprove(request.id)}
+                              onClick={() => handleApprove(request._id)}
                               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                             >
                               <CheckCircle size={16} className="mr-2" />
                               Approve
                             </button>
-                            
+
                             <button
-                              onClick={() => handleReject(request.id)}
+                              onClick={() => handleReject(request._id)}
                               className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                             >
                               <XCircle size={16} className="mr-2" />
@@ -130,10 +151,10 @@ const ManageLeaveRequests: React.FC = () => {
               
               <div className="divide-y divide-gray-200">
                 {otherRequests.map((request) => {
-                  const person = personnel.find(p => p.id === request.personnelId);
-                  
+                  const person = request.personnelId;
+
                   return (
-                    <div key={request.id} className="p-4">
+                    <div key={request._id} className="p-4">
                       <div className="flex items-center space-x-4">
                         <div className="flex-shrink-0">
                           <img 
@@ -149,7 +170,9 @@ const ManageLeaveRequests: React.FC = () => {
                           </p>
                           <div className="flex items-center text-sm text-gray-500">
                             <Calendar size={16} className="mr-1" />
-                            <span>{request.startDate} - {request.endDate}</span>
+                            <span>
+                              {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
                         

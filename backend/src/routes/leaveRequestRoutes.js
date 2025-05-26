@@ -4,50 +4,36 @@ const LeaveRequest = require('../models/LeaveRequest');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-// Submit a leave request (personnel)
+// Personnel submits a leave request
 router.post('/', async (req, res) => {
-  try {
-    const { personnelId, startDate, endDate, reason } = req.body;
-
-    // Validate personnelId as a valid ObjectId
-    if (!personnelId || !mongoose.Types.ObjectId.isValid(personnelId)) {
-      return res.status(400).json({ message: 'Invalid or missing personnelId' });
-    }
-    if (!startDate || !endDate || !reason) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    const leaveRequest = new LeaveRequest({ personnelId, startDate, endDate, reason });
-    await leaveRequest.save();
-    res.status(201).json({ message: 'Leave request submitted', leaveRequest });
-  } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error' });
-  }
+  const { personnelId, startDate, endDate, reason } = req.body;
+  const leaveRequest = await LeaveRequest.create({ personnelId, startDate, endDate, reason });
+  res.json({ leaveRequest });
 });
 
-// Get all leave requests (for manager)
+// Manager fetches all leave requests
 router.get('/', async (req, res) => {
   try {
-    const leaveRequests = await LeaveRequest.find().populate('personnelId', 'name email');
-    res.json({ leaveRequests });
+    const { personnelId } = req.query;
+    let query = {};
+    if (personnelId) query.personnelId = new mongoose.Types.ObjectId(personnelId);
+    const requests = await LeaveRequest.find(query);
+    res.json({ requests });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error' });
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Approve or deny a leave request (manager)
+// Manager approves/rejects a request
 router.patch('/:id', async (req, res) => {
-  try {
-    const { status, comments } = req.body;
-    const leaveRequest = await LeaveRequest.findByIdAndUpdate(
-      req.params.id,
-      { status, comments, reviewDate: new Date() },
-      { new: true }
-    );
-    res.json({ message: 'Leave request updated', leaveRequest });
-  } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error' });
-  }
+  const { status, comments } = req.body;
+  const leaveRequest = await LeaveRequest.findByIdAndUpdate(
+    req.params.id,
+    { status, reviewDate: new Date(), comments },
+    { new: true }
+  );
+  res.json({ leaveRequest });
 });
 
 module.exports = router;

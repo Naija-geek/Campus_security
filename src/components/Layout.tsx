@@ -46,7 +46,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           { to: '/manager/personnel', label: 'Personnel', icon: <User size={20} /> },
           { to: '/manager/assign-duty', label: 'Assign Duty', icon: <MapPin size={20} /> },
           { to: '/manager/leave-requests', label: 'Leave Requests', icon: <Calendar size={20} /> },
-          { to: '/manager/loan-requests', label: 'Loan Requests', icon: <DollarSign size={20} /> }
+          { to: '/manager/loan-requests', label: 'Loan Requests', icon: <DollarSign size={20} /> },
+          { to: '/manager/overtime-requests', label: 'Overtime Requests', icon: <Clock size={20} /> }
         ];
       case 'admin':
         return [

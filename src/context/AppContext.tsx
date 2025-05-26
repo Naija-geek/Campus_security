@@ -131,12 +131,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const updateLoanRequestStatus = (
+  const updateLoanRequestStatus = async (
     id: string, 
     status: 'approved' | 'rejected', 
     approvedDeductionPercentage?: number, 
     approvedDuration?: number
   ) => {
+    await fetch(`http://localhost:5000/api/loan-requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status, approvedDeductionPercentage, approvedDuration }),
+    });
+    
     setLoanRequests(loanRequests.map(req => {
       if (req.id === id) {
         const updatedReq: LoanRequest = {

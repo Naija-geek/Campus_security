@@ -1,29 +1,65 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
-import { useAppContext } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import RequestForm from '../../components/RequestForm';
 import StatusBadge from '../../components/StatusBadge';
-import { DollarSign, Calendar, TrendingUp } from 'lucide-react';
+import { DollarSign, TrendingUp } from 'lucide-react';
 
 const LoanRequests: React.FC = () => {
   const { user } = useAuth();
-  const { loanRequests, submitLoanRequest } = useAppContext();
-  
-  const myRequests = loanRequests.filter(request => request.personnelId === user?.id);
-  
+  const [loanRequests, setLoanRequests] = useState<any[]>([]);
+  const [notification, setNotification] = useState<string | null>(null);
+
+  // Fetch user's loan requests
+  useEffect(() => {
+    if (user?._id) {
+      fetch(`http://localhost:5000/api/loan-requests?personnelId=${user._id}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setLoanRequests(data.requests || []));
+    }
+  }, [user?._id]);
+
+  // Filter requests for this user (handles both string and object personnelId)
+  const myRequests = loanRequests.filter(request =>
+    (typeof request.personnelId === 'object'
+      ? request.personnelId._id
+      : request.personnelId) === user?._id
+  );
+
+  // Submit new loan request
   const handleSubmit = (data: any) => {
-    submitLoanRequest({
-      personnelId: user?.id || '',
-      amount: parseFloat(data.amount),
-      reason: data.reason,
-      proposedDeductionPercentage: parseFloat(data.deductionPercentage)
+    fetch('http://localhost:5000/api/loan-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        personnelId: user?._id,
+        amount: parseFloat(data.amount),
+        reason: data.reason,
+        proposedDeductionPercentage: parseFloat(data.deductionPercentage)
+      })
+    }).then(res => {
+      if (res.ok) {
+        setNotification('Loan request sent successfully!');
+        // Refresh the requests list
+        fetch(`http://localhost:5000/api/loan-requests?personnelId=${user._id}`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => setLoanRequests(data.requests || []));
+      } else {
+        setNotification('Failed to send loan request.');
+      }
+      setTimeout(() => setNotification(null), 3000);
     });
   };
-  
+
   return (
     <Layout>
       <div className="p-6">
+        {notification && (
+          <div className="mb-4 p-3 rounded bg-green-100 text-green-800 text-center">
+            {notification}
+          </div>
+        )}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Loan Requests</h1>
           <p className="text-gray-600">Submit and track your loan requests</p>
@@ -38,11 +74,13 @@ const LoanRequests: React.FC = () => {
               
               <div className="divide-y divide-gray-200">
                 {myRequests.map((request) => (
-                  <div key={request.id} className="p-4">
+                  <div key={request._id} className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <StatusBadge status={request.status} />
                       <span className="text-sm text-gray-500">
-                        {request.requestDate}
+                        {request.requestDate
+                          ? new Date(request.requestDate).toLocaleDateString()
+                          : ''}
                       </span>
                     </div>
                     
@@ -66,6 +104,11 @@ const LoanRequests: React.FC = () => {
                           <div>Approved Deduction: {request.approvedDeductionPercentage}%</div>
                           <div>Duration: {request.approvedDuration} months</div>
                         </div>
+                      </div>
+                    )}
+                    {request.status === 'declined' && (
+                      <div className="mt-2 p-2 bg-red-50 rounded text-red-700 text-sm">
+                        Declined by manager
                       </div>
                     )}
                   </div>
