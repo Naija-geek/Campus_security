@@ -151,7 +151,10 @@ const ManageLeaveRequests: React.FC = () => {
               
               <div className="divide-y divide-gray-200">
                 {otherRequests.map((request) => {
-                  const person = request.personnelId;
+                  // Support both object and string for personnelId
+                  const person = typeof request.personnelId === 'object'
+                    ? request.personnelId
+                    : personnel.find(p => p._id === request.personnelId);
 
                   return (
                     <div key={request._id} className="p-4">
@@ -163,10 +166,9 @@ const ManageLeaveRequests: React.FC = () => {
                             className="h-10 w-10 rounded-full"
                           />
                         </div>
-                        
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {person?.name}
+                            {person?.name || 'Unknown'}
                           </p>
                           <div className="flex items-center text-sm text-gray-500">
                             <Calendar size={16} className="mr-1" />
@@ -175,7 +177,6 @@ const ManageLeaveRequests: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        
                         <StatusBadge status={request.status} />
                       </div>
                       

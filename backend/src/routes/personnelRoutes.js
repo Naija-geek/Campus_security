@@ -4,13 +4,15 @@ const User = require('../models/User');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  try {
-    // Only fetch personnel users, or all users as needed
-    const personnel = await User.find({ role: 'personnel' }); // or remove filter for all
-    res.json({ personnel });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+  const personnel = await User.find({ role: 'personnel' });
+  for (const person of personnel) {
+    if (person.isOnLeave && person.leaveEndDate && new Date(person.leaveEndDate) < new Date()) {
+      person.isOnLeave = false;
+      person.leaveEndDate = null;
+      await person.save();
+    }
   }
+  res.json({ personnel });
 });
 
 module.exports = router;

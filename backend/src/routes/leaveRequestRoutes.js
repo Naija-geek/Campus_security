@@ -1,6 +1,7 @@
 // backend/src/routes/leaveRequestRoutes.js
 const express = require('express');
 const LeaveRequest = require('../models/LeaveRequest');
+const User = require('../models/User'); // or Personnel, depending on your model
 const mongoose = require('mongoose');
 const router = express.Router();
 
@@ -30,9 +31,25 @@ router.patch('/:id', async (req, res) => {
   const { status, comments } = req.body;
   const leaveRequest = await LeaveRequest.findByIdAndUpdate(
     req.params.id,
-    { status, reviewDate: new Date(), comments },
+    { status, comments, reviewDate: new Date() },
     { new: true }
   );
+
+  // If approved, set personnel as on leave and store leave end date
+  if (status === 'approved') {
+    await User.findByIdAndUpdate(
+      leaveRequest.personnelId,
+      { isOnLeave: true, leaveEndDate: leaveRequest.endDate }
+    );
+  }
+  // If rejected, you may want to clear leave status (optional)
+  if (status === 'rejected') {
+    await User.findByIdAndUpdate(
+      leaveRequest.personnelId,
+      { isOnLeave: false, leaveEndDate: null }
+    );
+  }
+
   res.json({ leaveRequest });
 });
 

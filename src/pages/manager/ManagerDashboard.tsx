@@ -1,47 +1,54 @@
-import React, { useMemo } from 'react';
-import { 
-  Users, 
-  Calendar, 
-  ClipboardCheck, 
-  DollarSign, 
-  UserX 
-} from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Users, Calendar, ClipboardCheck, DollarSign, UserX } from 'lucide-react';
 import Layout from '../../components/Layout';
 import DashboardCard from '../../components/DashboardCard';
-import { useAppContext } from '../../context/AppContext';
 
 const ManagerDashboard: React.FC = () => {
-  const { 
-    personnel, 
-    leaveRequests, 
-    loanRequests, 
-    dutyAssignments, 
-    dutyPosts 
-  } = useAppContext();
-  
-  // Count pending requests
-  const pendingLeaveRequests = leaveRequests.filter(
-    lr => lr.status === 'pending'
-  ).length;
-  
-  const pendingLoanRequests = loanRequests.filter(
-    lr => lr.status === 'pending'
-  ).length;
-  
-  // Count personnel on leave
-  const personnelOnLeave = personnel.filter(p => p.isOnLeave).length;
-  
-  // Calculate duty post coverage
+  const [personnel, setPersonnel] = useState<any[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [loanRequests, setLoanRequests] = useState<any[]>([]);
+  const [dutyAssignments, setDutyAssignments] = useState<any[]>([]);
+  const [dutyPosts, setDutyPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/personnel', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setPersonnel(data.personnel || []));
+    fetch('http://localhost:5000/api/leave-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLeaveRequests(data.requests || []));
+    fetch('http://localhost:5000/api/loan-requests', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setLoanRequests(data.requests || []));
+    fetch('http://localhost:5000/api/duty-assignments', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setDutyAssignments(data.assignments || []));
+    fetch('http://localhost:5000/api/duty-posts', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setDutyPosts(data.posts || []));
+  }, []);
+
+  // Counts and calculations
+  const pendingLeaveRequests = leaveRequests.filter(lr => lr.status === 'pending').length;
+  const pendingLoanRequests = loanRequests.filter(lr => lr.status === 'pending').length;
+  const today = new Date();
+  const personnelOnLeave = personnel.filter(person => {
+    // Find an approved leave request for this person that covers today
+    return leaveRequests.some(lr =>
+      (typeof lr.personnelId === 'object' ? lr.personnelId._id : lr.personnelId) === person._id &&
+      lr.status === 'approved' &&
+      new Date(lr.startDate) <= today &&
+      new Date(lr.endDate) >= today
+    );
+  }).length;
+
   const coveredPosts = useMemo(() => {
-    const activeDutyAssignments = dutyAssignments.filter(da => {
-      const today = new Date().toISOString().split('T')[0];
-      return da.startDate <= today && da.endDate >= today;
-    });
-    
+    const today = new Date().toISOString().split('T')[0];
+    const activeDutyAssignments = dutyAssignments.filter(da => da.startDate <= today && da.endDate >= today);
     const coveredPostIds = [...new Set(activeDutyAssignments.map(da => da.dutyPostId))];
     return coveredPostIds.length;
   }, [dutyAssignments]);
-  
+
   return (
     <Layout>
       <div className="mb-6">
@@ -57,7 +64,6 @@ const ManagerDashboard: React.FC = () => {
           to="/manager/personnel"
           color="blue"
         />
-        
         <DashboardCard
           title="Personnel on Leave"
           count={personnelOnLeave.toString()}
@@ -65,7 +71,6 @@ const ManagerDashboard: React.FC = () => {
           to="/manager/personnel"
           color="red"
         />
-        
         <DashboardCard
           title="Pending Leave Requests"
           count={pendingLeaveRequests.toString()}
@@ -83,7 +88,6 @@ const ManagerDashboard: React.FC = () => {
           to="/manager/assign-duty"
           color="purple"
         />
-        
         <DashboardCard
           title="Pending Loan Requests"
           count={pendingLoanRequests.toString()}
@@ -97,7 +101,6 @@ const ManagerDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Leave Requests</h2>
-            
             {leaveRequests.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -110,10 +113,11 @@ const ManagerDashboard: React.FC = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {leaveRequests.slice(0, 3).map((request) => {
-                      const person = personnel.find(p => p.id === request.personnelId);
-                      
+                      const person = personnel.find(
+                        p => p._id === (typeof request.personnelId === 'object' ? request.personnelId._id : request.personnelId)
+                      );
                       return (
-                        <tr key={request.id} className="hover:bg-gray-50">
+                        <tr key={request._id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-8 w-8 rounded-full overflow-hidden">
@@ -125,7 +129,9 @@ const ManagerDashboard: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{request.startDate} to {request.endDate}</div>
+                            <div className="text-sm text-gray-900">
+                              {new Date(request.startDate).toLocaleDateString()} to {new Date(request.endDate).toLocaleDateString()}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -148,7 +154,6 @@ const ManagerDashboard: React.FC = () => {
               <p className="text-gray-500">No leave requests.</p>
             )}
           </div>
-          
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
             <a 
               href="/manager/leave-requests" 
@@ -162,16 +167,26 @@ const ManagerDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Personnel on Leave</h2>
-            
             {personnelOnLeave > 0 ? (
               <div className="space-y-4">
-                {personnel.filter(p => p.isOnLeave).slice(0, 3).map((person) => {
-                  const leaveRequest = leaveRequests.find(
-                    lr => lr.personnelId === person.id && lr.status === 'approved'
+                {personnel.filter(person => {
+                  // Only show if they have an approved leave request covering today
+                  return leaveRequests.some(lr =>
+                    (typeof lr.personnelId === 'object' ? lr.personnelId._id : lr.personnelId) === person._id &&
+                    lr.status === 'approved' &&
+                    new Date(lr.startDate) <= today &&
+                    new Date(lr.endDate) >= today
                   );
-                  
+                }).slice(0, 3).map((person) => {
+                  const leaveRequest = leaveRequests.find(
+                    lr =>
+                      (typeof lr.personnelId === 'object' ? lr.personnelId._id : lr.personnelId) === person._id &&
+                      lr.status === 'approved' &&
+                      new Date(lr.startDate) <= today &&
+                      new Date(lr.endDate) >= today
+                  );
                   return (
-                    <div key={person.id} className="bg-white border rounded-lg p-4">
+                    <div key={person._id} className="bg-white border rounded-lg p-4">
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full overflow-hidden">
                           <img src={person.profileImage} alt={person.name} className="h-full w-full object-cover" />
@@ -181,16 +196,15 @@ const ManagerDashboard: React.FC = () => {
                           <div className="text-xs text-gray-500">{person.email}</div>
                         </div>
                       </div>
-                      
                       {leaveRequest && (
                         <div className="mt-3 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-500">From:</span>
-                            <span className="font-medium">{leaveRequest.startDate}</span>
+                            <span className="font-medium">{new Date(leaveRequest.startDate).toLocaleDateString()}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">To:</span>
-                            <span className="font-medium">{leaveRequest.endDate}</span>
+                            <span className="font-medium">{new Date(leaveRequest.endDate).toLocaleDateString()}</span>
                           </div>
                           <div className="mt-1 text-xs text-gray-500">{leaveRequest.reason}</div>
                         </div>
@@ -203,7 +217,6 @@ const ManagerDashboard: React.FC = () => {
               <p className="text-gray-500">No personnel on leave.</p>
             )}
           </div>
-          
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
             <a 
               href="/manager/personnel" 
