@@ -6,6 +6,9 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { personnelId, dutyPostId, startDate, endDate, shifts } = req.body;
+    if (!personnelId || !dutyPostId || !startDate || !endDate || !shifts) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
     const assignment = await DutyAssignment.create({
       personnelId,
       dutyPostId,
@@ -16,6 +19,7 @@ router.post('/', async (req, res) => {
     });
     res.json({ assignment });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });

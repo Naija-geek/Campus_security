@@ -91,7 +91,7 @@ const ViewPersonnel: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="h-10 w-10 rounded-full overflow-hidden">
-                             
+                              <img
                                 src={person.profileImage || '/default-profile.png'}
                                 alt={person.name}
                                 className="h-full w-full object-cover"
@@ -120,9 +120,11 @@ const ViewPersonnel: React.FC = () => {
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             person.isOnLeave
                               ? 'bg-yellow-100 text-yellow-800'
+                              : person.isActive === false
+                              ? 'bg-red-100 text-red-800'
                               : 'bg-green-100 text-green-800'
                           }`}>
-                            {person.isOnLeave ? 'On Leave' : 'Active'}
+                            {person.isOnLeave ? 'On Leave' : person.isActive === false ? 'Inactive' : 'Active'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
